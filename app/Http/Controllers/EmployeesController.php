@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 use App\Models\Employees;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+
 class EmployeesController extends Controller
 {
     public function index()
@@ -22,7 +23,7 @@ class EmployeesController extends Controller
         return Inertia::render('Employees/Create');
     }
 
-public function store(Request $request)
+    public function store(Request $request)
     {
         $data = $request->validate([
             'full_name'       => 'required|string|max:255',
@@ -75,80 +76,99 @@ public function store(Request $request)
     public function update(Request $request, Employees $employee)
     {
         $data = $request->validate([
-            'full_name'          => 'sometimes|required|string|max:255',
-            'email'              => 'sometimes|required|email|unique:employees,email,' . $employee->id,
-            'phone_number'       => 'sometimes|required|numeric|unique:employees,phone_number,' . $employee->id,
-            'address'            => 'sometimes|required|string',
-            'id_number'          => 'sometimes|required|string|unique:employees,id_number,' . $employee->id,
-            'passport_number'    => 'sometimes|required|string|unique:employees,passport_number,' . $employee->id,
-            'date_of_birth'      => 'sometimes|required|date',
-            'city'               => 'sometimes|required|string',
-            'district'           => 'sometimes|required|string',
-            'province'           => 'sometimes|required|string',
-            'gender'             => 'sometimes|required|string',
-            'agency'             => 'sometimes|required|string',
-            'documents'          => 'nullable|array',
-            'documents.*'        => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:2048',
+            'full_name'          => 'required|string|max:255',
+            'email'              => 'required|email|unique:employees,email,' . $employee->id,
+            'phone_number'       => 'required|numeric|unique:employees,phone_number,' . $employee->id,
+            'address'            => 'required|string',
+            'id_number'          => 'required|string|unique:employees,id_number,' . $employee->id,
+            'passport_number'    => 'required|string|unique:employees,passport_number,' . $employee->id,
+            'date_of_birth'      => 'required|date',
+            'city'               => 'required|string',
+            'district'           => 'required|string',
+            'province'           => 'required|string',
+            'gender'             => 'required|string',
+            'agency'             => 'required|string',
             'existing_documents' => 'nullable|array',
+            'documents'          => 'nullable|array',
+            'documents.*'        => 'file|mimes:jpg,jpeg,png,pdf,doc,docx|max:10248',
         ]);
 
-        $existingDocuments = $data['existing_documents'] ?? json_decode($employee->documents ?? '[]', true);
+        $currentDocuments = is_array($employee->documents)
+        ? $employee->documents
+        : json_decode($employee->documents, true) ?? [];
 
+        $keptDocuments = $data['existing_documents'] ?? [];
+
+        $docsToDelete = array_diff($currentDocuments, $keptDocuments);
+        foreach ($docsToDelete as $filePath) {
+            Storage::disk('public')->delete($filePath);
+        }
+
+        $folderId = $data['id_number'] ?? $employee->id_number ?? '';
+        $folderId = trim((string) $folderId);
+        if ($folderId === '') {
+            $folderId = 'no-id';
+        }
+
+        $newDocuments = [];
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $file) {
-                $path                = $file->store("employees/{$employee->id_number}", 'public');
-                $existingDocuments[] = $path;
+                $newDocuments[] = $file->store("employees/{$folderId}", 'public');
             }
         }
 
-        $data['documents'] = json_encode($existingDocuments);
+        $finalDocuments = array_merge($keptDocuments, $newDocuments);
 
-        $employee->update($data);
+        $employee->update(array_merge($data, [
+            'documents' => $finalDocuments,
+        ]));
 
-        return redirect()->route('employees.index')->with('success', 'Employee updated successfully!');
+        return Redirect::route('employees.index')->with('success', 'Employee updated successfully!');
     }
 
-    public function show($id)
-    {
-        $employee = Employees::findOrFail($id);
-
-        $docs = $employee->documents ? json_decode($employee->documents, true) : [];
-
-        // Convert storage path → full URL
-        $docs = array_map(function ($path) {
-            return asset('storage/' . $path);
-        }, $docs);
-
-        $employee->documents = $docs;
-
-        return Inertia::render('Employees/View', [
-            'employee' => $employee,
-        ]);
-    }
-
-public function destroy(Employees $employee)
+ public function show($id)
 {
-    if (!empty($employee->documents)) {
-        $documents = [];
-        if (is_string($employee->documents)) {
-            $documents = json_decode($employee->documents, true) ?? [];
-        } elseif (is_array($employee->documents)) {
-            $documents = $employee->documents;
-        }
-        foreach ($documents as $filePath) {
-            if (Storage::disk('public')->exists($filePath)) {
-                Storage::disk('public')->delete($filePath);
+    $employee = Employees::findOrFail($id);
+
+    $docs = is_array($employee->documents)
+        ? $employee->documents
+        : (!empty($employee->documents) ? json_decode($employee->documents, true) : []);
+
+    $docs = array_map(function ($path) {
+        return asset('storage/' . $path);
+    }, $docs);
+
+    $employee->documents = $docs;
+
+    return Inertia::render('Employees/View', [
+        'employee' => $employee,
+    ]);
+}
+
+
+    public function destroy(Employees $employee)
+    {
+        if (! empty($employee->documents)) {
+            $documents = [];
+            if (is_string($employee->documents)) {
+                $documents = json_decode($employee->documents, true) ?? [];
+            } elseif (is_array($employee->documents)) {
+                $documents = $employee->documents;
+            }
+            foreach ($documents as $filePath) {
+                if (Storage::disk('public')->exists($filePath)) {
+                    Storage::disk('public')->delete($filePath);
+                }
             }
         }
+
+        $folder = "employees/{$employee->id_number}";
+        if (Storage::disk('public')->exists($folder)) {
+            Storage::disk('public')->deleteDirectory($folder);
+        }
+
+        $employee->delete();
+
+        return Redirect::route('employees.index')->with('success', 'Employee deleted successfully!');
     }
-
-    $folder = "employees/{$employee->id_number}";
-    if (Storage::disk('public')->exists($folder)) {
-        Storage::disk('public')->deleteDirectory($folder);
-    }
-
-    $employee->delete();
-
-    return Redirect::route('employees.index')->with('success', 'Employee deleted successfully!');
-}
 }
