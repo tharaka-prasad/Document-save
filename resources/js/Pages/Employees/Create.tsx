@@ -34,22 +34,25 @@ export default function Create() {
         documents: [],
     });
 
+    // Handle multiple files and allow selecting more files later
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            setData('documents', [...data.documents, ...Array.from(e.target.files)]);
+            e.target.value = ''; // reset input to allow re-select
+        }
+    };
+
+    const removeFile = (index: number) => {
+        setData('documents', data.documents.filter((_, i) => i !== index));
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post(route('employees.store'), { forceFormData: true });
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setData('documents', [...data.documents, ...Array.from(e.target.files)]);
-        }
-    };
-
-
     return (
-        <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Add Employee</h2>}
-        >
+        <AuthenticatedLayout header={<h2 className="text-xl font-semibold text-gray-800">Add Employee</h2>}>
             <Head title="Add Employee" />
 
             <div className="py-12">
@@ -75,7 +78,7 @@ export default function Create() {
                                 <input type="text" placeholder="Passport Number" value={data.passport_number} onChange={e => setData('passport_number', e.target.value)} className="border rounded px-3 py-2 w-full" />
                                 {errors.passport_number && <div className="text-red-500">{errors.passport_number}</div>}
 
-                                <input type="date" placeholder="Date of Birth" value={data.date_of_birth} onChange={e => setData('date_of_birth', e.target.value)} className="border rounded px-3 py-2 w-full" />
+                                <input type="date" value={data.date_of_birth} onChange={e => setData('date_of_birth', e.target.value)} className="border rounded px-3 py-2 w-full" />
                                 {errors.date_of_birth && <div className="text-red-500">{errors.date_of_birth}</div>}
 
                                 <input type="text" placeholder="City" value={data.city} onChange={e => setData('city', e.target.value)} className="border rounded px-3 py-2 w-full" />
@@ -100,42 +103,28 @@ export default function Create() {
                                 <input type="text" placeholder="Agency" value={data.agency} onChange={e => setData('agency', e.target.value)} className="border rounded px-3 py-2 w-full" />
                                 {errors.agency && <div className="text-red-500">{errors.agency}</div>}
 
-                                <div>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        onChange={handleFileChange}
-                                        className="border rounded px-3 py-2 w-full"
-                                    />
+                                {/* Multiple Documents */}
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Documents</label>
+                                    <input type="file" multiple onChange={handleFileChange} className="border rounded px-3 py-2 w-full" />
+                                    {errors.documents && <div className="text-red-500">{errors.documents}</div>}
+
                                     {data.documents.length > 0 && (
-                                        <ul className="mt-2 space-y-1">
-                                            {data.documents.map((file, index) => (
-                                                <li key={index} className="flex justify-between items-center border px-2 py-1 rounded">
-                                                    <span className="text-sm">{file.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        className="text-red-500 hover:text-red-700"
-                                                        onClick={() =>
-                                                            setData('documents', data.documents.filter((_, i) => i !== index))
-                                                        }
-                                                    >
-                                                        Remove
-                                                    </button>
+                                        <ul className="mt-2">
+                                            {data.documents.map((file, i) => (
+                                                <li key={i} className="flex justify-between items-center">
+                                                    {file.name}
+                                                    <button type="button" onClick={() => removeFile(i)} className="text-red-500 ml-2">Remove</button>
                                                 </li>
                                             ))}
                                         </ul>
                                     )}
                                 </div>
-                                {errors.documents && <div className="text-red-500">{errors.documents}</div>}
                             </div>
 
                             <div className="flex space-x-2">
-                                <button type="submit" disabled={processing} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                                    Save
-                                </button>
-                                <Link href={route('employees.index')} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                                    Cancel
-                                </Link>
+                                <button type="submit" disabled={processing} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+                                <Link href={route('employees.index')} className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">Cancel</Link>
                             </div>
                         </form>
                     </div>

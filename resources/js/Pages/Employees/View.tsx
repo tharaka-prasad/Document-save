@@ -14,7 +14,7 @@ type Employee = {
     province: string;
     gender: string;
     agency: string;
-    documents?: string[];
+    documents: string[];
 };
 
 interface ViewProps {
@@ -22,6 +22,10 @@ interface ViewProps {
 }
 
 export default function View({ employee }: ViewProps) {
+    const isImage = (url: string) => {
+        return /\.(jpg|jpeg|png|gif)$/i.test(url);
+    };
+
     return (
         <AuthenticatedLayout
             header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Employee Details</h2>}
@@ -47,21 +51,29 @@ export default function View({ employee }: ViewProps) {
 
                         <div>
                             <strong>Documents:</strong>
-                            {employee.documents && employee.documents.length > 0 ? (
-                                <ul className="list-disc ml-6 mt-2">
+                            {employee.documents.length > 0 ? (
+                                <div className="mt-2 grid grid-cols-2 gap-4">
                                     {employee.documents.map((file, index) => (
-                                        <li key={index}>
-                                            <a
-                                                href={`/storage/${file}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-blue-600 underline"
-                                            >
-                                                {file.split('/').pop()}
-                                            </a>
-                                        </li>
+                                        <div key={index} className="border p-2 rounded shadow-sm">
+                                            {isImage(file) ? (
+                                                <img
+                                                    src={file}
+                                                    alt={`Document ${index + 1}`}
+                                                    className="max-h-60 w-auto object-contain mx-auto"
+                                                />
+                                            ) : (
+                                                <a
+                                                    href={file}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-blue-600 underline"
+                                                >
+                                                    {file.split('/').pop()}
+                                                </a>
+                                            )}
+                                        </div>
                                     ))}
-                                </ul>
+                                </div>
                             ) : (
                                 <p>No documents uploaded.</p>
                             )}
@@ -75,7 +87,6 @@ export default function View({ employee }: ViewProps) {
                                 Back to Employees
                             </Link>
                         </div>
-
                     </div>
                 </div>
             </div>
