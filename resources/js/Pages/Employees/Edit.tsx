@@ -24,27 +24,11 @@ interface EditProps {
 }
 
 export default function Edit({ employee }: EditProps) {
-    // State for existing documents
     const [existingDocuments, setExistingDocuments] = useState<string[]>(
         Array.isArray(employee.documents) ? employee.documents : []
     );
 
-    // Form state
-    const { data, setData, put, processing, errors } = useForm<{
-        full_name: string;
-        email: string;
-        phone_number: string;
-        address: string;
-        id_number: string;
-        passport_number: string;
-        date_of_birth: string;
-        city: string;
-        district: string;
-        province: string;
-        gender: string;
-        agency: string;
-        documents: File[];
-    }>({
+    const { data, setData, put, processing, errors } = useForm({
         full_name: employee.full_name,
         email: employee.email,
         phone_number: employee.phone_number,
@@ -57,205 +41,203 @@ export default function Edit({ employee }: EditProps) {
         province: employee.province,
         gender: employee.gender,
         agency: employee.agency,
-        documents: [],
+        documents: [] as File[],
     });
 
-    // Submit handler
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         put(route('employees.update', employee.id), {
-            data: {
-                ...data,
-                existing_documents: existingDocuments,
-            },
+            data: { ...data, existing_documents: existingDocuments },
         });
     };
 
-    // Handle new file uploads
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setData('documents', e.target.files ? Array.from(e.target.files) : []);
     };
 
-    // Remove existing document
     const removeExistingDocument = (file: string) => {
         setExistingDocuments(prev => prev.filter(f => f !== file));
     };
 
-    // Check if file is an image
     const isImage = (url: string) => /\.(jpg|jpeg|png|gif)$/i.test(url);
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Edit Employee</h2>}
+            header={<h2 className="text-2xl font-bold text-gray-900">Edit Employee</h2>}
         >
             <Head title="Edit Employee" />
 
             <div className="py-12">
-                <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                    <div className="bg-white shadow-sm sm:rounded-lg p-6">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                {/* Full Name */}
-                                <input
-                                    type="text"
-                                    placeholder="Full Name"
-                                    value={data.full_name}
-                                    onChange={e => setData('full_name', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.full_name && <div className="text-red-500">{errors.full_name}</div>}
+                <div className="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                    <div className="bg-white shadow-md sm:rounded-lg p-8">
+                        <form onSubmit={handleSubmit} className="space-y-6">
 
-                                {/* Email */}
-                                <input
-                                    type="email"
-                                    placeholder="Email"
-                                    value={data.email}
-                                    onChange={e => setData('email', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.email && <div className="text-red-500">{errors.email}</div>}
-
-                                {/* Phone Number */}
-                                <input
-                                    type="text"
-                                    placeholder="Phone Number"
-                                    value={data.phone_number}
-                                    onChange={e => setData('phone_number', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.phone_number && <div className="text-red-500">{errors.phone_number}</div>}
-
-                                {/* Address */}
-                                <input
-                                    type="text"
-                                    placeholder="Address"
-                                    value={data.address}
-                                    onChange={e => setData('address', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.address && <div className="text-red-500">{errors.address}</div>}
-
-                                {/* ID Number */}
-                                <input
-                                    type="text"
-                                    placeholder="ID Number"
-                                    value={data.id_number}
-                                    onChange={e => setData('id_number', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.id_number && <div className="text-red-500">{errors.id_number}</div>}
-
-                                {/* Passport Number */}
-                                <input
-                                    type="text"
-                                    placeholder="Passport Number"
-                                    value={data.passport_number}
-                                    onChange={e => setData('passport_number', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.passport_number && <div className="text-red-500">{errors.passport_number}</div>}
-
-                                {/* Date of Birth */}
-                                <input
-                                    type="date"
-                                    placeholder="Date of Birth"
-                                    value={data.date_of_birth}
-                                    onChange={e => setData('date_of_birth', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.date_of_birth && <div className="text-red-500">{errors.date_of_birth}</div>}
-
-                                {/* City */}
-                                <input
-                                    type="text"
-                                    placeholder="City"
-                                    value={data.city}
-                                    onChange={e => setData('city', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.city && <div className="text-red-500">{errors.city}</div>}
-
-                                {/* District */}
-                                <input
-                                    type="text"
-                                    placeholder="District"
-                                    value={data.district}
-                                    onChange={e => setData('district', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.district && <div className="text-red-500">{errors.district}</div>}
-
-                                {/* Province */}
-                                <input
-                                    type="text"
-                                    placeholder="Province"
-                                    value={data.province}
-                                    onChange={e => setData('province', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.province && <div className="text-red-500">{errors.province}</div>}
-
-                                {/* Gender */}
+                            {/* Grid Layout for Form Fields */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Gender</label>
+                                    <label className="block text-sm font-medium text-gray-700">Full Name</label>
+                                    <input
+                                        type="text"
+                                        value={data.full_name}
+                                        onChange={e => setData('full_name', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.full_name && <p className="mt-1 text-red-500 text-sm">{errors.full_name}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <input
+                                        type="email"
+                                        value={data.email}
+                                        onChange={e => setData('email', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.email && <p className="mt-1 text-red-500 text-sm">{errors.email}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <input
+                                        type="text"
+                                        value={data.phone_number}
+                                        onChange={e => setData('phone_number', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.phone_number && <p className="mt-1 text-red-500 text-sm">{errors.phone_number}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Address</label>
+                                    <input
+                                        type="text"
+                                        value={data.address}
+                                        onChange={e => setData('address', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.address && <p className="mt-1 text-red-500 text-sm">{errors.address}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">ID Number</label>
+                                    <input
+                                        type="text"
+                                        value={data.id_number}
+                                        onChange={e => setData('id_number', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.id_number && <p className="mt-1 text-red-500 text-sm">{errors.id_number}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Passport Number</label>
+                                    <input
+                                        type="text"
+                                        value={data.passport_number}
+                                        onChange={e => setData('passport_number', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.passport_number && <p className="mt-1 text-red-500 text-sm">{errors.passport_number}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                                    <input
+                                        type="date"
+                                        value={data.date_of_birth}
+                                        onChange={e => setData('date_of_birth', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.date_of_birth && <p className="mt-1 text-red-500 text-sm">{errors.date_of_birth}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">City</label>
+                                    <input
+                                        type="text"
+                                        value={data.city}
+                                        onChange={e => setData('city', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.city && <p className="mt-1 text-red-500 text-sm">{errors.city}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">District</label>
+                                    <input
+                                        type="text"
+                                        value={data.district}
+                                        onChange={e => setData('district', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.district && <p className="mt-1 text-red-500 text-sm">{errors.district}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Province</label>
+                                    <input
+                                        type="text"
+                                        value={data.province}
+                                        onChange={e => setData('province', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.province && <p className="mt-1 text-red-500 text-sm">{errors.province}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Gender</label>
                                     <select
                                         value={data.gender}
                                         onChange={e => setData('gender', e.target.value)}
-                                        className="border rounded px-3 py-2 w-full"
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                                     >
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
                                     </select>
-                                    {errors.gender && <div className="text-red-500">{errors.gender}</div>}
+                                    {errors.gender && <p className="mt-1 text-red-500 text-sm">{errors.gender}</p>}
                                 </div>
 
-                                {/* Agency */}
-                                <input
-                                    type="text"
-                                    placeholder="Agency"
-                                    value={data.agency}
-                                    onChange={e => setData('agency', e.target.value)}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.agency && <div className="text-red-500">{errors.agency}</div>}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">Agency</label>
+                                    <input
+                                        type="text"
+                                        value={data.agency}
+                                        onChange={e => setData('agency', e.target.value)}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.agency && <p className="mt-1 text-red-500 text-sm">{errors.agency}</p>}
+                                </div>
 
-                                {/* Upload new documents */}
-                                <input
-                                    type="file"
-                                    multiple
-                                    onChange={handleFileChange}
-                                    className="border rounded px-3 py-2 w-full"
-                                />
-                                {errors.documents && <div className="text-red-500">{errors.documents}</div>}
+                                <div className="md:col-span-2">
+                                    <label className="block text-sm font-medium text-gray-700">Upload New Documents</label>
+                                    <input
+                                        type="file"
+                                        multiple
+                                        onChange={handleFileChange}
+                                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    />
+                                    {errors.documents && <p className="mt-1 text-red-500 text-sm">{errors.documents}</p>}
+                                </div>
                             </div>
 
                             {/* Existing Documents */}
                             {existingDocuments.length > 0 && (
-                                <div className="mt-4">
-                                    <strong>Existing Documents:</strong>
-                                    <div className="grid grid-cols-2 gap-4 mt-2">
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-800 mb-2">Existing Documents</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         {existingDocuments.map((file, idx) => (
-                                            <div key={idx} className="border p-2 rounded shadow-sm relative">
+                                            <div key={idx} className="border rounded p-2 relative flex items-center justify-center">
                                                 {isImage(file) ? (
-                                                    <img
-                                                        src={`/storage/${file}`}
-                                                        alt={`Document ${idx + 1}`}
-                                                        className="max-h-40 w-auto object-contain mx-auto"
-                                                    />
+                                                    <img src={`/storage/${file}`} alt={`Document ${idx + 1}`} className="max-h-40 object-contain" />
                                                 ) : (
-                                                    <a
-                                                        href={`/storage/${file}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-blue-600 underline"
-                                                    >
+                                                    <a href={`/storage/${file}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                                                         {file.split('/').pop()}
                                                     </a>
                                                 )}
                                                 <button
                                                     type="button"
                                                     onClick={() => removeExistingDocument(file)}
-                                                    className="absolute top-1 right-1 text-red-600 font-bold"
+                                                    className="absolute top-1 right-1 text-red-600 font-bold text-xl"
                                                 >
                                                     &times;
                                                 </button>
@@ -266,21 +248,22 @@ export default function Edit({ employee }: EditProps) {
                             )}
 
                             {/* Buttons */}
-                            <div className="flex space-x-2 mt-4">
+                            <div className="flex space-x-3 justify-end mt-6">
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                                    className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
                                 >
                                     Update
                                 </button>
                                 <Link
                                     href={route('employees.index')}
-                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                    className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
                                 >
                                     Cancel
                                 </Link>
                             </div>
+
                         </form>
                     </div>
                 </div>

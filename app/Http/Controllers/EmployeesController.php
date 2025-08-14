@@ -5,8 +5,7 @@ use App\Models\Employees;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
-use Laravel\Pail\ValueObjects\Origin\Console;
-
+use Illuminate\Support\Facades\Storage;
 class EmployeesController extends Controller
 {
     public function index()
@@ -127,10 +126,29 @@ public function store(Request $request)
         ]);
     }
 
-    public function destroy(Employees $employee)
-    {
-        $employee->delete();
-
-        return Redirect::route('employees.index')->with('success', 'Employee deleted successfully!');
+public function destroy(Employees $employee)
+{
+    if (!empty($employee->documents)) {
+        $documents = [];
+        if (is_string($employee->documents)) {
+            $documents = json_decode($employee->documents, true) ?? [];
+        } elseif (is_array($employee->documents)) {
+            $documents = $employee->documents;
+        }
+        foreach ($documents as $filePath) {
+            if (Storage::disk('public')->exists($filePath)) {
+                Storage::disk('public')->delete($filePath);
+            }
+        }
     }
+
+    $folder = "employees/{$employee->id_number}";
+    if (Storage::disk('public')->exists($folder)) {
+        Storage::disk('public')->deleteDirectory($folder);
+    }
+
+    $employee->delete();
+
+    return Redirect::route('employees.index')->with('success', 'Employee deleted successfully!');
+}
 }
