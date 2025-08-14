@@ -21,6 +21,11 @@ class Employees extends Model
         'province',
         'gender',
         'agency',
+        'documents',
+    ];
+    protected $casts = [
+        'documents' => 'array',
+        'date_of_birth' => 'date',
     ];
 
 }

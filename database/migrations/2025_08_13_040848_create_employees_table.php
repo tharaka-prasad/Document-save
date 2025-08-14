@@ -13,18 +13,18 @@ return new class extends Migration
     {
         Schema::create('employees', function (Blueprint $table) {
             $table->id();
-            $table->string('full_name');
-            $table->string('email')->unique();
-            $table->integer('phone_number')->unique();
-            $table->string('address');
-            $table->string('id_number')->unique();
-            $table->string('passport_number')->unique();
-            $table->date('date_of_birth');
-            $table->string('city');
-            $table->string('district');
-            $table->string('province');
-            $table->string('gender');
-            $table->string('agency');
+            $table->string('full_name')->nullable();
+            $table->string('email')->unique()->nullable();
+            $table->integer('phone_number')->unique()->nullable();
+            $table->string('address')->nullable();
+            $table->string('id_number')->unique()->nullable();
+            $table->string('passport_number')->unique()->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('city')->nullable();
+            $table->string('district')->nullable();
+            $table->string('province')->nullable();
+            $table->enum('gender'   , ['male', 'female'])->default('male')->nullable();
+            $table->string('agency')->nullable();
             $table->json('documents')->nullable();
             $table->timestamps();
         });

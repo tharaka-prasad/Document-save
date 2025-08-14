@@ -19,7 +19,13 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/employees', [EmployeesController::class, 'index'])->name('employees.index');
+    Route::get('/', [EmployeesController::class, 'index'])->name('employees.index');
+    Route::get('/employees/create', [EmployeesController::class, 'create'])->name('employees.create');
+    Route::post('/employees', [EmployeesController::class, 'store'])->name('employees.store');
+    Route::get('/employees/{employee}/edit', [EmployeesController::class, 'edit'])->name('employees.edit');
+    Route::put('/employees/{employee}', [EmployeesController::class, 'update'])->name('employees.update');
+    Route::get('/employees/{employee}', [EmployeesController::class, 'show'])->name('employees.show');
+    Route::delete('/employees/{employee}', [EmployeesController::class, 'destroy'])->name('employees.destroy');
 });
 
 require __DIR__ . '/auth.php';
